@@ -30,6 +30,7 @@ class Player:
     if 0 <= nova_linha < self.Mundo.tamanho and 0 <= nova_coluna < self.Mundo.tamanho:
       self.linha = nova_linha
       self.coluna = nova_coluna
+      self.Mundo.imprimeMundo(self.linha, self.coluna)
       # self.Percepcao()
     else:
       print("Choque contra a parede da caverna!")
@@ -46,7 +47,9 @@ class Player:
     
     else:
       self.orient = "^"
-  
+
+    self.Mundo.imprimeMundo(self.linha, self.coluna)
+
   def GirarDireita(self):
     if self.orient == "^":
       self.orient = ">"
@@ -59,7 +62,9 @@ class Player:
     
     else:
       self.orient = "^"
-  
+
+    self.Mundo.imprimeMundo(self.linha, self.coluna)
+
   def Atirar(self):
     if self.flecha == 0:
       print("Você não tem flechas!")
@@ -103,7 +108,7 @@ class Player:
       print("Não há ouro nesta sala!")
 
   def Sair(self):
-    if (self.linha, self.coluna) == (0, 0):
+    if (self.linha, self.coluna) == (self.Mundo.tamanho-1, 0):
       print("-----------")
       print("FIM DE JOGO")
       print("-----------")
@@ -111,7 +116,7 @@ class Player:
     
     else:
       print("Vá para a saída da caverna")
-
+    self.Mundo.imprimeMundo(self.linha, self.coluna)
   def Percepcao(self):
     # Para o ouro
     if self.Ouro.existe and (self.linha, self.coluna) == (self.Ouro.linha, self.Ouro.coluna):
@@ -161,18 +166,18 @@ class Mundo:
     self.tamanho = tamanho
     self.Player = Player(self)
   
-  def imprimeMundo(self, tamanho):
-    mapa = [["?"for i in range(tamanho)]for i in range(tamanho)]
-    mapa[self.Player.linha][self.Player.coluna] = self.Player.orient
+  def imprimeMundo(self, linha_player, coluna_player):
+    mapa = [["?"for i in range(self.tamanho)]for i in range(self.tamanho)]
+    mapa[linha_player][coluna_player] = self.Player.orient
 
     # Imprimir linha superior do mapa
-    print("-" * (4 * tamanho + 1))
+    print("-" * (4 * self.tamanho + 1))
 
-    for i in range(tamanho):
+    for i in range(self.tamanho):
       # Imprimir o início de cada linha
       print("|", end="")
-      for j in range(tamanho):
+      for j in range(self.tamanho):
         print(f" {mapa[i][j]} |", end = "")
       # Imprimir linha divisória entre cada linha do mapa
       print()
-      print("-" * (4*tamanho+1))
+      print("-" * (4*self.tamanho+1))
