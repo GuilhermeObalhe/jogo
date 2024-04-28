@@ -1,6 +1,6 @@
 class Player:
   def __init__(self, Mundo):
-    self.perc = "Nada por perto"
+    self.perc = " "
     self.orient = "^"
     self.linha = Mundo.tamanho-1
     self.coluna = 0
@@ -9,9 +9,14 @@ class Player:
     self.vivo = True
     self.pegou = False
     self.Mundo = Mundo #Instância de mundo associada ao jogador
+    self.Wumpus = Wumpus(3, 2) #Preciso deixar isso genérico
+    self.Ouro = Ouro(1, 2) #Preciso deixar isso genérico
+    self.Poco = Poco(3, 4) #Preciso deixar isso genérico
+    self.linha_anterior = self.linha
+    self.coluna_anterior = self.coluna
 
   def Mover(self):
-    
+    self.linha_anterior, self.coluna_anterior = self.linha, self.coluna
     nova_linha, nova_coluna = self.linha, self.coluna
     
     if self.orient == "^":
@@ -30,8 +35,8 @@ class Player:
     if 0 <= nova_linha < self.Mundo.tamanho and 0 <= nova_coluna < self.Mundo.tamanho:
       self.linha = nova_linha
       self.coluna = nova_coluna
-      self.Mundo.imprimeMundo(self.linha, self.coluna)
-      # self.Percepcao()
+      self.Mundo.imprimeMundo(self.linha_anterior, self.coluna_anterior)
+      self.Percepcao()
     else:
       print("Choque contra a parede da caverna!")
 
@@ -94,8 +99,10 @@ class Player:
       else:
         print("Você não acertou o tiro!")
 
+      
       # Decremento do número de flechas
       self.flecha -= 1
+      self.Mundo.imprimeMundo(self.linha, self.coluna)
 
   def Pegar(self):
     if (self.linha, self.coluna) == (self.Ouro.linha, self.Ouro.coluna) and self.Ouro.existe:
@@ -107,6 +114,8 @@ class Player:
     else:
       print("Não há ouro nesta sala!")
 
+    self.Mundo.imprimeMundo(self.linha, self.coluna)
+
   def Sair(self):
     if (self.linha, self.coluna) == (self.Mundo.tamanho-1, 0):
       print("-----------")
@@ -117,19 +126,22 @@ class Player:
     else:
       print("Vá para a saída da caverna")
     self.Mundo.imprimeMundo(self.linha, self.coluna)
+
   def Percepcao(self):
+    self.perc = " "
     # Para o ouro
     if self.Ouro.existe and (self.linha, self.coluna) == (self.Ouro.linha, self.Ouro.coluna):
       self.perc = "R"
       print("Algo está brilhando")
     
     # Para o Wumpus
-    if (self.linha - 1, self.coluna) == (self.Wumpus.linha, self.Wumpus.coluna) or \
+    if ((self.linha - 1, self.coluna) == (self.Wumpus.linha, self.Wumpus.coluna) or \
       (self.linha + 1, self.coluna) == (self.Wumpus.linha, self.Wumpus.coluna) or \
       (self.linha, self.coluna - 1) == (self.Wumpus.linha, self.Wumpus.coluna) or \
-      (self.linha, self.coluna + 1) == (self.Wumpus.linha, self.Wumpus.coluna):
+      (self.linha, self.coluna + 1) == (self.Wumpus.linha, self.Wumpus.coluna)) \
+      and self.Wumpus.vivo:
       self.perc = "F"
-      print("Estou sentindo um fedor horrível!")
+      print("Estou sentindo um fedor terrível!")
 
     #Para o poço
     if (self.linha - 1, self.coluna) == (self.Poco.linha, self.Poco.coluna) or \
@@ -141,7 +153,8 @@ class Player:
 
     # Caso o personagem caia no poço ou se encontre com o wumpus
     if ((self.linha, self.coluna) == (self.Poco.linha, self.Poco.coluna)) or \
-    ((self.linha, self.coluna) == (self.Wumpus.linha, self.Wumpus.coluna)):
+    ((self.linha, self.coluna) == (self.Wumpus.linha, self.Wumpus.coluna)and self.Wumpus.vivo):
+      print("Você morreu!")
       self.vivo = False
 
 class Ouro:
@@ -165,10 +178,11 @@ class Mundo:
   def __init__(self, tamanho):
     self.tamanho = tamanho
     self.Player = Player(self)
+    self.mapa = [["?"for i in range(self.tamanho)]for i in range(self.tamanho)]
   
-  def imprimeMundo(self, linha_player, coluna_player):
-    mapa = [["?"for i in range(self.tamanho)]for i in range(self.tamanho)]
-    mapa[linha_player][coluna_player] = self.Player.orient
+  def imprimeMundo(self, linha_anterior, coluna_anterior):
+    self.mapa[linha_anterior][coluna_anterior] = self.Player.perc
+    self.mapa[self.Player.linha][self.Player.coluna] = self.Player.orient
 
     # Imprimir linha superior do mapa
     print("-" * (4 * self.tamanho + 1))
@@ -177,7 +191,7 @@ class Mundo:
       # Imprimir o início de cada linha
       print("|", end="")
       for j in range(self.tamanho):
-        print(f" {mapa[i][j]} |", end = "")
+        print(f" {self.mapa[i][j]} |", end = "")
       # Imprimir linha divisória entre cada linha do mapa
       print()
       print("-" * (4*self.tamanho+1))
